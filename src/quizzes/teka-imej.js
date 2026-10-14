@@ -4,7 +4,8 @@
 export default {
   id: 'teka-imej',
   title: 'Teka Imej Dalam Perkataan',
-  subtitle: 'Ice breaking — cari imej yang tersembunyi di dalam huruf.',
+  category: '🧊 Ice breaking',
+  subtitle: 'Cari imej yang tersembunyi di dalam huruf.',
   modes: ['choice', 'text'],
   shuffle: true,
   defaultDuration: 10,

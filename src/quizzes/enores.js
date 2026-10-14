@@ -3,6 +3,7 @@
 export default {
   id: 'enores',
   title: 'Kuiz e-NORES',
+  category: '📘 Latihan',
   subtitle: 'Lesen Untuk Menggaji Pekerja Bukan Pemastautin — Ordinan Buruh (Sabah Bab 67).',
   modes: ['choice'],
   shuffle: false,

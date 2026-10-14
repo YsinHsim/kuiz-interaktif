@@ -34,7 +34,7 @@ const tab = ref('host')
         </li>
         <li>
           <h3>Pilih tetapan</h3>
-          <p><b>Pilih kuiz:</b> cth. <i>Teka Imej Dalam Perkataan</i> (ice breaking) atau <i>Kuiz e-NORES</i>.</p>
+          <p><b>Pilih kuiz:</b> cth. <i>Teka Imej Dalam Perkataan</i> (ice breaking) atau <i>Kuiz e-NORES</i> (latihan).</p>
           <p><b>Cara menjawab:</b> <i>Pilihan A–D</i> (disemak automatik, paling pantas) atau <i>Taip jawapan</i> (lebih mencabar — hanya untuk kuiz tertentu).</p>
           <p><b>Masa setiap soalan:</b> 10s untuk ice breaking; 15–20s untuk mod taip atau soalan panjang (e-NORES).</p>
         </li>
@@ -97,8 +97,9 @@ const tab = ref('host')
           <p>Taip nama anda (maks. 20 aksara) dan tekan <b>Masuk ▶</b>. Tunggu skrin <i>"Anda sudah masuk!"</i>.</p>
         </li>
         <li>
-          <h3>Lihat &amp; teka</h3>
-          <p>Perhatikan perkataan besar — ada <b>imej tersembunyi di dalam huruf</b>. Gambar juga dipaparkan di telefon anda.</p>
+          <h3>Baca soalan</h3>
+          <p>Soalan (dan gambar, jika ada) dipaparkan di skrin besar dan juga di telefon anda.</p>
+          <p class="muted">Kuiz <i>Teka Imej</i>: perhatikan perkataan besar — ada <b>imej tersembunyi di dalam huruf</b>.</p>
         </li>
         <li>
           <h3>Jawab sebelum masa tamat</h3>

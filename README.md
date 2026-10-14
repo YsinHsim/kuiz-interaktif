@@ -1,4 +1,4 @@
-# Kuiz Ice Breaking — Teka Imej Dalam Perkataan
+# Kuiz Interaktif
 
 Permainan kuiz berbilang pemain (gaya Kahoot) tanpa backend. Hos memaparkan skrin pada projektor,
 peserta imbas kod QR dan jawab di telefon.

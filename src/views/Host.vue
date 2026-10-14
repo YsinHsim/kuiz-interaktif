@@ -120,7 +120,7 @@ function copyLink() {
                 :class="{ on: game.quizId === qz.id }"
                 @click="host.setQuiz(qz.id)"
               >
-                <b>{{ qz.title }}</b>
+                <b><span class="cat">{{ qz.category }}</span> {{ qz.title }}</b>
                 <small>{{ qz.questions.length }} soalan • {{ qz.subtitle }}</small>
               </button>
             </div>
@@ -345,6 +345,7 @@ h3 { margin: 0 0 12px; font-size: 1rem; }
   border-radius: 12px; padding: 10px 14px; cursor: pointer; display: flex; flex-direction: column; gap: 2px;
 }
 .quiz-opt small { color: var(--muted); }
+.quiz-opt .cat { font-size: 0.75rem; color: var(--accent); margin-right: 4px; }
 .quiz-opt.on { border-color: var(--accent); background: rgba(246, 196, 69, 0.08); }
 .q-side { display: flex; flex-direction: column; gap: 14px; }
 .timer { text-align: center; }

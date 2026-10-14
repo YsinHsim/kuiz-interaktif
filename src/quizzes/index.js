@@ -11,6 +11,8 @@ import enores from './enores.js'
 //   image    — gambar dalam /public (pilihan)
 //   accept   — senarai jawapan diterima untuk mod taip (wajib jika kuiz menyokong mod 'text')
 //   why      — penerangan selepas jawapan didedahkan (pilihan)
+//
+// Medan kuiz: id, title, category (cth. '📘 Latihan'), subtitle, modes, shuffle, defaultDuration, questions
 export const QUIZZES = [tekaImej, enores]
 
 export const getQuiz = (id) => QUIZZES.find((q) => q.id === id) ?? QUIZZES[0]

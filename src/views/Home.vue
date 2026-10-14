@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import { QUIZZES } from '../quizzes/index.js'
 
 const code = ref('')
 function join() {
@@ -10,9 +11,9 @@ function join() {
 <template>
   <main class="home">
     <div class="hero">
-      <p class="eyebrow">Ice Breaking • 10 soalan</p>
-      <h1>Teka Imej<br /><span>Dalam Perkataan</span></h1>
-      <p class="lead">Lihat perkataan besar, cari imej yang tersembunyi di dalam huruf, dan jawab sebelum masa tamat!</p>
+      <p class="eyebrow">Ice breaking • Latihan • Kuiz langsung</p>
+      <h1>Kuiz<br /><span>Interaktif</span></h1>
+      <p class="lead">Hos paparkan soalan di skrin besar, peserta jawab di telefon. Jawab pantas, kumpul mata, rebut tempat teratas!</p>
       <a href="#/panduan" class="btn small guide-link">📖 Panduan cara bermain</a>
     </div>
 
@@ -30,6 +31,17 @@ function join() {
         <a class="btn" href="#/host">Mulakan sebagai hos</a>
       </div>
     </div>
+
+    <section class="quizzes">
+      <h2>Kuiz tersedia</h2>
+      <ul>
+        <li v-for="q in QUIZZES" :key="q.id">
+          <span class="cat">{{ q.category }}</span>
+          <b>{{ q.title }}</b>
+          <small class="muted">{{ q.questions.length }} soalan • {{ q.subtitle }}</small>
+        </li>
+      </ul>
+    </section>
   </main>
 </template>
 
@@ -50,5 +62,10 @@ h1 span { color: var(--accent); }
 .card h2 { margin: 0; font-size: 1.3rem; }
 .card .btn { margin-top: auto; }
 label { font-size: 0.85rem; color: var(--muted); }
+.quizzes { margin-top: 32px; }
+.quizzes h2 { font-size: 1rem; color: var(--muted); font-weight: 600; text-align: center; margin-bottom: 12px; }
+.quizzes ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.quizzes li { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border-radius: 14px; border: 1px dashed var(--border); }
+.cat { font-size: 0.8rem; font-weight: 600; color: var(--accent); }
 input { font-size: 1.6rem; letter-spacing: 0.3em; text-align: center; }
 </style>
