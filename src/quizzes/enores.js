@@ -7,8 +7,6 @@ export default {
   modes: ['choice'],
   shuffle: false,
   defaultDuration: 20,
-  reflection:
-    'Selepas ini, apabila saya menguruskan Lesen Penggajian Pekerja Bukan Pemastautin, saya akan …',
   questions: [
     {
       prompt: 'Apakah maksud eNORES?',

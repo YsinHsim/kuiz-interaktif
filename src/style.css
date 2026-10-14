@@ -133,3 +133,10 @@ input:focus { border-color: var(--accent); }
 .leaderboard .rank { width: 2ch; font-weight: 800; color: var(--accent); }
 .leaderboard .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .leaderboard .score { font-weight: 800; font-variant-numeric: tabular-nums; }
+
+/* Membolehkan cincin peratus (conic-gradient) beranimasi */
+@property --p {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}

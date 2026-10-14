@@ -69,8 +69,9 @@ const tab = ref('host')
           <h3>Keputusan akhir</h3>
           <p>Podium 3 teratas dipaparkan. Pilih <b>Main semula (peserta sama)</b> untuk pusingan baru,
             atau <b>Permainan baharu</b> untuk kod bilik baharu.</p>
-          <p class="muted">Sesetengah kuiz (cth. e-NORES) memaparkan soalan <b>Refleksi</b> di akhir — ayat tergantung untuk
-            dilengkapkan oleh peserta secara lisan sebagai rumusan sesi. Ia tidak dikira dalam markah.</p>
+          <p>Tekan tab <b>📊 Analisis Soalan</b> untuk melihat peratus betul / salah bagi setiap soalan. Soalan bertanda
+            <b>⚠️ Perlu diterangkan</b> (kurang 50% betul) ialah topik yang wajar diulang kaji bersama peserta.
+            Tekan soalan untuk lihat jawapan salah paling popular dan penerangan.</p>
         </li>
       </ol>
 

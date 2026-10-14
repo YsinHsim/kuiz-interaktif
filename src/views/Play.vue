@@ -183,10 +183,6 @@ function leave() {
           <div class="big-emoji">{{ ['🥇', '🥈', '🥉'][you?.rank - 1] ?? '🏁' }}</div>
           <h2>Permainan tamat!</h2>
           <p>Kedudukan <b>#{{ you?.rank }}</b> • {{ you?.score }} mata</p>
-          <div v-if="snap.reflection" class="why reflection">
-            <small class="muted">💭 Refleksi — fikirkan &amp; kongsikan:</small>
-            <p>{{ snap.reflection }}</p>
-          </div>
           <ol class="leaderboard">
             <li v-for="(r, i) in snap.leaderboard" :key="i" :class="{ me: r.name === you?.name }">
               <span class="rank">{{ r.rank }}</span><span class="name">{{ r.name }}</span><span class="score">{{ r.score }}</span>
@@ -250,7 +246,5 @@ function leave() {
 .gain { font-size: 2.4rem; font-weight: 800; color: var(--good); margin: 0 0 8px; }
 .rank { margin-top: 16px; font-size: 1.1rem; }
 .final .leaderboard { margin-top: 20px; text-align: left; }
-.reflection { margin-top: 16px; }
-.reflection p { margin: 4px 0 0; font-weight: 600; }
 .leaderboard li.me { outline: 2px solid var(--accent); }
 </style>

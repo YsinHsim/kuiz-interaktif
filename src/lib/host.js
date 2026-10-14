@@ -97,6 +97,50 @@ export function createHost() {
       .sort((a, b) => a.ms - b.ms),
   )
 
+  // Analisis setiap soalan yang telah dimainkan — untuk skrin keputusan akhir.
+  // Peratus dikira daripada semua peserta (yang tidak menjawab dikira "tiada jawapan").
+  const questionStats = computed(() => {
+    const n = players.value.length
+    return quiz.value.questions.slice(0, game.qIndex + 1).map((q, i) => {
+      let correct = 0
+      let wrong = 0
+      let msSum = 0
+      const wrongCounts = new Map()
+      for (const p of players.value) {
+        const a = p.answers[i]
+        if (!a) continue
+        if (answerResult(a).correct) {
+          correct++
+          msSum += a.ms
+        } else {
+          wrong++
+          const label = typeof a.value === 'number' ? q.choices[a.value] : a.value
+          const key = String(label).trim().toLowerCase()
+          const entry = wrongCounts.get(key) ?? { label, count: 0 }
+          entry.count++
+          wrongCounts.set(key, entry)
+        }
+      }
+      const pct = (x) => (n ? Math.round((x / n) * 100) : 0)
+      return {
+        index: i,
+        prompt: q.prompt,
+        word: q.word ?? null,
+        answer: answerText(q),
+        why: q.why ?? null,
+        total: n,
+        correct,
+        wrong,
+        none: n - correct - wrong,
+        correctPct: pct(correct),
+        wrongPct: pct(wrong),
+        nonePct: n ? 100 - pct(correct) - pct(wrong) : 0,
+        avgSec: correct ? msSum / correct / 1000 : null,
+        topWrong: [...wrongCounts.values()].sort((a, b) => b.count - a.count)[0] ?? null,
+      }
+    })
+  })
+
   function labelFor(value) {
     if (typeof value === 'number') return question.value?.choices[value] ?? '?'
     return value
@@ -141,7 +185,6 @@ export function createHost() {
         points: showAnswer ? res.points : null,
       },
       playerCount: players.value.length,
-      reflection: game.phase === 'end' ? (quiz.value.reflection ?? null) : null,
       leaderboard: showAnswer ? leaderboard.value.slice(0, 5).map(({ name, score, rank }) => ({ name, score, rank })) : null,
     }
   }
@@ -399,7 +442,7 @@ export function createHost() {
 
   return {
     game, net, now, soundOn,
-    quiz, question, remaining, players, connectedPlayers, leaderboard, currentAnswers,
+    quiz, question, remaining, players, connectedPlayers, leaderboard, currentAnswers, questionStats,
     total,
     start, closeTimer, reveal, next, end, backToLobby, newGame, setQuiz, removePlayer, setOverride, destroy,
   }

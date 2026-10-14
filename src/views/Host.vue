@@ -7,9 +7,11 @@ import { QUIZZES, correctIndex, answerText } from '../quizzes/index.js'
 import { useFullscreen } from '../lib/fullscreen.js'
 import { playDrumrollFanfare } from '../lib/sfx.js'
 import { celebrate } from '../lib/celebrate.js'
+import QuestionStats from '../components/QuestionStats.vue'
 
 const host = createHost()
-const { game, net, soundOn, quiz, question, remaining, players, connectedPlayers, leaderboard, currentAnswers, total } = host
+const { game, net, soundOn, quiz, question, remaining, players, connectedPlayers, leaderboard, currentAnswers, questionStats, total } =
+  host
 onUnmounted(host.destroy)
 const fs = useFullscreen({ hotkey: true })
 
@@ -44,11 +46,13 @@ const podium = computed(() => leaderboard.value.slice(0, 3))
 
 // Keputusan akhir: gulungan dram semasa podium naik, kemudian fanfara + konfeti apabila tempat pertama muncul.
 let celebrateTimer = null
+const resultsTab = ref('podium') // 'podium' | 'stats'
 watch(
   () => game.phase,
   (phase, prev) => {
     clearTimeout(celebrateTimer)
     if (phase !== 'end' || prev === 'end') return
+    resultsTab.value = 'podium'
     const delay = soundOn.value ? playDrumrollFanfare(1.6) : 2000
     celebrateTimer = setTimeout(() => celebrate(), delay)
   },
@@ -254,8 +258,16 @@ function copyLink() {
     </main>
 
     <!-- ================= KEPUTUSAN ================= -->
-    <main v-else class="results">
+    <main v-else class="results" :class="{ wide: resultsTab === 'stats' }">
       <h1>🏆 Keputusan Akhir</h1>
+      <div class="tabs">
+        <button :class="{ on: resultsTab === 'podium' }" @click="resultsTab = 'podium'">🏆 Podium</button>
+        <button :class="{ on: resultsTab === 'stats' }" @click="resultsTab = 'stats'">📊 Analisis Soalan</button>
+      </div>
+
+      <QuestionStats v-if="resultsTab === 'stats'" :stats="questionStats" />
+
+      <div v-show="resultsTab === 'podium'">
       <div class="podium">
         <div v-for="(r, i) in podium" :key="r.pid" class="step" :class="`p${i + 1}`">
           <div class="medal">{{ ['🥇', '🥈', '🥉'][i] }}</div>
@@ -269,9 +281,6 @@ function copyLink() {
           <span class="rank">{{ r.rank }}</span><span class="name">{{ r.name }}</span><span class="score">{{ r.score }}</span>
         </li>
       </ol>
-      <div v-if="quiz.reflection" class="card reflection">
-        <span class="muted">💭 Refleksi — minta beberapa peserta lengkapkan ayat ini secara lisan</span>
-        <p>{{ quiz.reflection }}</p>
       </div>
       <div class="controls center">
         <button class="btn primary big" @click="host.backToLobby">↺ Main semula (peserta sama)</button>
@@ -337,8 +346,6 @@ h3 { margin: 0 0 12px; font-size: 1rem; }
 }
 .quiz-opt small { color: var(--muted); }
 .quiz-opt.on { border-color: var(--accent); background: rgba(246, 196, 69, 0.08); }
-.reflection { max-width: 640px; margin: 0 auto 24px; text-align: left; }
-.reflection p { font-size: 1.3rem; font-weight: 600; margin: 6px 0 0; }
 .q-side { display: flex; flex-direction: column; gap: 14px; }
 .timer { text-align: center; }
 .timer p { margin: 10px 0 0; }
@@ -366,7 +373,12 @@ h3 { margin: 0 0 12px; font-size: 1rem; }
 
 /* Keputusan */
 .results { flex: 1; padding: 32px 16px; max-width: 900px; width: 100%; margin: 0 auto; text-align: center; }
-.results h1 { font-size: clamp(2rem, 5vw, 3rem); }
+.results h1 { font-size: clamp(2rem, 5vw, 3rem); margin-bottom: 16px; }
+.results.wide { max-width: 1200px; }
+.results .controls { margin-top: 24px; }
+.tabs { display: inline-flex; background: var(--bg-2); border: 1px solid var(--border); border-radius: 14px; padding: 4px; gap: 4px; margin-bottom: 20px; }
+.tabs button { font: inherit; font-weight: 700; border: 0; border-radius: 10px; padding: 10px 20px; background: transparent; color: var(--muted); cursor: pointer; }
+.tabs button.on { background: var(--accent); color: var(--accent-ink); }
 .podium { display: flex; justify-content: center; align-items: flex-end; gap: 12px; margin: 32px 0; }
 .step { display: flex; flex-direction: column; align-items: center; width: min(30%, 200px); animation: rise 0.6s backwards; }
 .step.p1 { order: 2; animation-delay: 1.45s; }
@@ -374,7 +386,7 @@ h3 { margin: 0 0 12px; font-size: 1rem; }
 .step.p3 { order: 3; animation-delay: 0.2s; }
 .step.p1 .medal { animation: bounce 0.6s 2.05s; }
 @keyframes bounce { 40% { transform: scale(1.5) rotate(-10deg); } 70% { transform: scale(0.9); } }
-.rest, .reflection { animation: fade 0.6s 2.4s backwards; }
+.rest { animation: fade 0.6s 2.4s backwards; }
 @keyframes fade { from { opacity: 0; transform: translateY(12px); } }
 .medal { font-size: 2.6rem; }
 .pname { font-weight: 800; font-size: 1.15rem; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
