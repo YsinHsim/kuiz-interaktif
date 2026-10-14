@@ -1,10 +1,12 @@
 <script setup>
-import { computed, ref, watchEffect, onUnmounted } from 'vue'
+import { computed, ref, watch, watchEffect, onUnmounted } from 'vue'
 import QRCode from 'qrcode'
 import { createHost } from '../lib/host.js'
 import { joinUrl } from '../lib/net.js'
 import { QUIZZES, correctIndex, answerText } from '../quizzes/index.js'
 import { useFullscreen } from '../lib/fullscreen.js'
+import { playDrumrollFanfare } from '../lib/sfx.js'
+import { celebrate } from '../lib/celebrate.js'
 
 const host = createHost()
 const { game, net, soundOn, quiz, question, remaining, players, connectedPlayers, leaderboard, currentAnswers, total } = host
@@ -39,6 +41,19 @@ const choiceStats = computed(() => {
 const maxCount = computed(() => Math.max(1, ...choiceStats.value.map((c) => c.count)))
 
 const podium = computed(() => leaderboard.value.slice(0, 3))
+
+// Keputusan akhir: gulungan dram semasa podium naik, kemudian fanfara + konfeti apabila tempat pertama muncul.
+let celebrateTimer = null
+watch(
+  () => game.phase,
+  (phase, prev) => {
+    clearTimeout(celebrateTimer)
+    if (phase !== 'end' || prev === 'end') return
+    const delay = soundOn.value ? playDrumrollFanfare(1.6) : 2000
+    celebrateTimer = setTimeout(() => celebrate(), delay)
+  },
+)
+onUnmounted(() => clearTimeout(celebrateTimer))
 
 function confirmEnd() {
   if (confirm('Tamatkan permainan sekarang dan paparkan keputusan?')) host.end()
@@ -255,7 +270,7 @@ function copyLink() {
         </li>
       </ol>
       <div v-if="quiz.reflection" class="card reflection">
-        <span class="muted">💭 Refleksi</span>
+        <span class="muted">💭 Refleksi — minta beberapa peserta lengkapkan ayat ini secara lisan</span>
         <p>{{ quiz.reflection }}</p>
       </div>
       <div class="controls center">
@@ -354,9 +369,13 @@ h3 { margin: 0 0 12px; font-size: 1rem; }
 .results h1 { font-size: clamp(2rem, 5vw, 3rem); }
 .podium { display: flex; justify-content: center; align-items: flex-end; gap: 12px; margin: 32px 0; }
 .step { display: flex; flex-direction: column; align-items: center; width: min(30%, 200px); animation: rise 0.6s backwards; }
-.step.p1 { order: 2; animation-delay: 0.6s; }
-.step.p2 { order: 1; animation-delay: 0.3s; }
-.step.p3 { order: 3; }
+.step.p1 { order: 2; animation-delay: 1.45s; }
+.step.p2 { order: 1; animation-delay: 0.8s; }
+.step.p3 { order: 3; animation-delay: 0.2s; }
+.step.p1 .medal { animation: bounce 0.6s 2.05s; }
+@keyframes bounce { 40% { transform: scale(1.5) rotate(-10deg); } 70% { transform: scale(0.9); } }
+.rest, .reflection { animation: fade 0.6s 2.4s backwards; }
+@keyframes fade { from { opacity: 0; transform: translateY(12px); } }
 .medal { font-size: 2.6rem; }
 .pname { font-weight: 800; font-size: 1.15rem; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pscore { color: var(--accent); font-weight: 800; margin-bottom: 8px; }

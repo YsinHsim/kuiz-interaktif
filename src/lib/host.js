@@ -2,6 +2,7 @@ import { reactive, ref, computed, watch } from 'vue'
 import { Peer } from 'peerjs'
 import { QUIZZES, getQuiz, correctIndex, answerText } from '../quizzes/index.js'
 import { isMatch } from './match.js'
+import { cancelFade, fadeOut, playTimeUp, unlockAudio } from './sfx.js'
 import { hostPeerId, PEER_OPTIONS, pointsFor, randomCode, shuffle } from './net.js'
 
 const STORAGE_KEY = 'kuiz-host-v1'
@@ -140,6 +141,7 @@ export function createHost() {
         points: showAnswer ? res.points : null,
       },
       playerCount: players.value.length,
+      reflection: game.phase === 'end' ? (quiz.value.reflection ?? null) : null,
       leaderboard: showAnswer ? leaderboard.value.slice(0, 5).map(({ name, score, rank }) => ({ name, score, rank })) : null,
     }
   }
@@ -295,12 +297,13 @@ export function createHost() {
 
   function playSound() {
     if (!soundOn.value) return
+    cancelFade(audio)
     audio.currentTime = 0
     audio.loop = game.duration > 11
     audio.play().catch(() => {})
   }
   function stopSound() {
-    audio.pause()
+    fadeOut(audio)
   }
   watch(soundOn, (on) => (on ? game.phase === 'question' && playSound() : stopSound()))
 
@@ -316,6 +319,7 @@ export function createHost() {
   }
 
   function start() {
+    unlockAudio()
     for (const p of players.value) p.answers = {}
     game.choiceOrder = makeOrder(quiz.value)
     startQuestion(0)
@@ -326,6 +330,7 @@ export function createHost() {
     game.phase = 'closed'
     game.deadline = Date.now()
     stopSound()
+    if (soundOn.value) playTimeUp()
   }
 
   function reveal() {

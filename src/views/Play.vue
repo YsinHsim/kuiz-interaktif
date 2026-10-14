@@ -1,7 +1,8 @@
 <script setup>
-import { ref, computed, onUnmounted, onMounted } from 'vue'
+import { ref, computed, watch, onUnmounted, onMounted } from 'vue'
 import { createPlayer, loadPlayerSession, lastUsedName } from '../lib/player.js'
 import { useFullscreen } from '../lib/fullscreen.js'
+import { celebrate } from '../lib/celebrate.js'
 
 const props = defineProps({ code: { type: String, default: '' } })
 
@@ -43,6 +44,16 @@ const myValueLabel = computed(() => {
   if (typeof state.pending === 'number') return snap.value?.question?.choices?.find((c) => c.id === state.pending)?.label
   return state.pending
 })
+
+// Konfeti di telefon apabila permainan tamat (selari dengan fanfara di skrin hos).
+let celebrateTimer = null
+watch(
+  () => snap.value?.phase,
+  (phase, prev) => {
+    if (phase === 'end' && prev && prev !== 'end') celebrateTimer = setTimeout(() => celebrate({ scale: 0.6 }), 2000)
+  },
+)
+onUnmounted(() => clearTimeout(celebrateTimer))
 
 function pick(id) {
   player.answer(id)
@@ -172,6 +183,10 @@ function leave() {
           <div class="big-emoji">{{ ['🥇', '🥈', '🥉'][you?.rank - 1] ?? '🏁' }}</div>
           <h2>Permainan tamat!</h2>
           <p>Kedudukan <b>#{{ you?.rank }}</b> • {{ you?.score }} mata</p>
+          <div v-if="snap.reflection" class="why reflection">
+            <small class="muted">💭 Refleksi — fikirkan &amp; kongsikan:</small>
+            <p>{{ snap.reflection }}</p>
+          </div>
           <ol class="leaderboard">
             <li v-for="(r, i) in snap.leaderboard" :key="i" :class="{ me: r.name === you?.name }">
               <span class="rank">{{ r.rank }}</span><span class="name">{{ r.name }}</span><span class="score">{{ r.score }}</span>
@@ -235,5 +250,7 @@ function leave() {
 .gain { font-size: 2.4rem; font-weight: 800; color: var(--good); margin: 0 0 8px; }
 .rank { margin-top: 16px; font-size: 1.1rem; }
 .final .leaderboard { margin-top: 20px; text-align: left; }
+.reflection { margin-top: 16px; }
+.reflection p { margin: 4px 0 0; font-weight: 600; }
 .leaderboard li.me { outline: 2px solid var(--accent); }
 </style>
