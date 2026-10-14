@@ -30,6 +30,15 @@ VITE_PEER_PATH=/
 VITE_PEER_SECURE=true
 ```
 
-## Ubah soalan
-Edit `src/questions.js` dan letak imej dalam `public/images/`. `choices[0]` mestilah jawapan betul
-(susunan dirawakkan semasa permainan); `accept` ialah senarai jawapan yang diterima untuk mod taip.
+## Kuiz tersedia
+- **Teka Imej Dalam Perkataan** — 10 soalan bergambar (mod pilihan A–D atau taip jawapan).
+- **Kuiz e-NORES** — 5 soalan Lesen Penggajian Pekerja Bukan Pemastautin, dengan penerangan & refleksi.
+
+Hos pilih kuiz di lobi. Butang **⛶ Skrin penuh** (atau kekunci **F**) untuk projektor.
+
+## Tambah kuiz baharu
+1. Cipta fail baharu dalam `src/quizzes/` (salin `enores.js` sebagai contoh).
+2. Daftarkan dalam `src/quizzes/index.js` → `QUIZZES`.
+3. Gambar (jika ada) letak dalam `public/images/`.
+
+Medan soalan diterangkan dalam `src/quizzes/index.js`.

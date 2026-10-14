@@ -1,12 +1,14 @@
 <script setup>
 import { ref, computed, onUnmounted, onMounted } from 'vue'
 import { createPlayer, loadPlayerSession, lastUsedName } from '../lib/player.js'
+import { useFullscreen } from '../lib/fullscreen.js'
 
 const props = defineProps({ code: { type: String, default: '' } })
 
 const player = createPlayer()
 const { state, remaining } = player
 onUnmounted(player.destroy)
+const fs = useFullscreen()
 
 const saved = loadPlayerSession()
 const codeInput = ref(props.code || saved?.code || '')
@@ -88,6 +90,9 @@ function leave() {
         <span class="pill">⭐ {{ you?.score ?? 0 }}</span>
         <span v-if="snap.qIndex >= 0 && snap.phase !== 'end'" class="pill">S{{ snap.qIndex + 1 }}/{{ snap.total }}</span>
         <span class="spacer" />
+        <button v-if="fs.supported" class="btn small ghost" title="Skrin penuh" @click="fs.toggle">
+          {{ fs.isFullscreen.value ? '🗗' : '⛶' }}
+        </button>
         <button class="btn small ghost" @click="leave">Keluar</button>
       </header>
       <p v-if="state.status === 'reconnecting'" class="reconnect"><span class="dot wait" /> Sambungan terputus — menyambung semula…</p>
@@ -97,18 +102,19 @@ function leave() {
         <div class="status-msg">
           <div class="big-emoji">🎉</div>
           <h2>Anda sudah masuk!</h2>
+          <p v-if="snap.quizTitle" class="quiz-title">{{ snap.quizTitle }}</p>
           <p class="muted">Tunggu hos memulakan permainan.<br />{{ snap.playerCount }} peserta dalam bilik.</p>
         </div>
       </main>
 
       <!-- Soalan -->
       <main v-else-if="snap.phase === 'question'" class="question">
-        <img :src="snap.question.image" alt="" class="qimg" />
+        <img v-if="snap.question.image" :src="snap.question.image" alt="" class="qimg" />
         <div class="timer-row">
           <div class="timer-bar" :class="{ low: seconds <= 3 }"><div :style="{ width: timerPct + '%' }" /></div>
           <span class="secs" :class="{ low: seconds <= 3 }">{{ seconds }}</span>
         </div>
-        <p class="prompt">{{ snap.question.prompt }}</p>
+        <p class="prompt" :class="{ big: !snap.question.image }">{{ snap.question.prompt }}</p>
 
         <div v-if="answered" class="sent">
           <div class="big-emoji">✅</div>
@@ -154,6 +160,7 @@ function leave() {
           <h2>{{ you?.correct ? 'Betul!' : answered ? 'Kurang tepat' : 'Tiada jawapan' }}</h2>
           <p v-if="you?.correct" class="gain">+{{ you.points }}</p>
           <p class="muted">Jawapan: <b>{{ snap.answer }}</b></p>
+          <p v-if="snap.why" class="why">💡 {{ snap.why }}</p>
           <p v-if="answered && !you?.correct" class="muted">Anda jawab: “{{ myValueLabel }}”</p>
           <p class="rank">Kedudukan anda: <b>#{{ you?.rank }}</b> daripada {{ snap.playerCount }}</p>
         </div>
@@ -203,6 +210,9 @@ function leave() {
 .secs { font-weight: 800; font-size: 1.5rem; width: 2ch; text-align: right; font-variant-numeric: tabular-nums; }
 .secs.low { color: var(--bad); }
 .prompt { font-weight: 600; font-size: 1.1rem; margin: 0; }
+.prompt.big { font-size: 1.35rem; font-weight: 800; line-height: 1.35; padding: 8px 0; }
+.quiz-title { color: var(--accent); font-weight: 600; }
+.why { text-align: left; background: rgba(0, 0, 0, 0.2); border-radius: 12px; padding: 12px 14px; font-size: 0.95rem; line-height: 1.5; }
 .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex: 1; min-height: 200px; }
 .choice {
   font: inherit; font-weight: 800; font-size: 1.05rem; color: #fff; border: 0; border-radius: 14px;
@@ -212,6 +222,7 @@ function leave() {
 .choice:active { transform: scale(0.96); }
 .choice:disabled { opacity: 0.5; }
 .choice .shape { font-size: 1.6rem; }
+.choice span:last-child { font-size: clamp(0.85rem, 3.6vw, 1.05rem); line-height: 1.3; }
 .text-form { display: flex; flex-direction: column; gap: 10px; }
 .text-form input { font-size: 1.3rem; padding: 16px; }
 .sent { text-align: center; padding: 20px 0; }

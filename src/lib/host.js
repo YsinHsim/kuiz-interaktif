@@ -1,6 +1,6 @@
 import { reactive, ref, computed, watch } from 'vue'
 import { Peer } from 'peerjs'
-import { QUESTIONS } from '../questions.js'
+import { QUIZZES, getQuiz, correctIndex, answerText } from '../quizzes/index.js'
 import { isMatch } from './match.js'
 import { hostPeerId, PEER_OPTIONS, pointsFor, randomCode, shuffle } from './net.js'
 
@@ -15,14 +15,24 @@ function loadSaved() {
   return null
 }
 
+// Susunan pilihan jawapan bagi setiap soalan (dirawak jika kuiz membenarkan).
+function makeOrder(quiz) {
+  return quiz.questions.map((q) => {
+    const idx = q.choices.map((_, i) => i)
+    return quiz.shuffle ? shuffle(idx) : idx
+  })
+}
+
 function freshGame(code, settings = {}) {
+  const quiz = getQuiz(settings.quizId ?? QUIZZES[0].id)
   return {
     code,
-    mode: settings.mode ?? 'choice', // 'choice' | 'text'
-    duration: settings.duration ?? 10,
+    quizId: quiz.id,
+    mode: quiz.modes.includes(settings.mode) ? settings.mode : 'choice', // 'choice' | 'text'
+    duration: settings.duration ?? quiz.defaultDuration ?? 10,
     phase: 'lobby', // lobby | question | closed | reveal | end
     qIndex: -1,
-    choiceOrder: QUESTIONS.map((q) => shuffle(q.choices.map((_, i) => i))),
+    choiceOrder: makeOrder(quiz),
     startedAt: 0,
     deadline: 0,
     players: {}, // pid -> { pid, name, connected, joinedAt, answers: { [q]: { value, ms, auto, override } } }
@@ -32,6 +42,7 @@ function freshGame(code, settings = {}) {
 export function createHost() {
   const saved = loadSaved()
   const game = reactive(saved?.game ?? freshGame(randomCode()))
+  game.quizId ??= QUIZZES[0].id
   for (const p of Object.values(game.players)) p.connected = false
   if (game.phase === 'question' && Date.now() >= game.deadline) game.phase = 'closed'
 
@@ -45,7 +56,9 @@ export function createHost() {
   let idRetries = 0
 
   // ---------- derived ----------
-  const question = computed(() => QUESTIONS[game.qIndex] ?? null)
+  const quiz = computed(() => getQuiz(game.quizId))
+  const total = computed(() => quiz.value.questions.length)
+  const question = computed(() => quiz.value.questions[game.qIndex] ?? null)
   const durationMs = computed(() => game.duration * 1000)
   const remaining = computed(() =>
     game.phase === 'question' ? Math.max(0, game.deadline - now.value) : 0,
@@ -101,7 +114,8 @@ export function createHost() {
       phase: game.phase,
       mode: game.mode,
       qIndex: game.qIndex,
-      total: QUESTIONS.length,
+      quizTitle: quiz.value.title,
+      total: total.value,
       duration: game.duration,
       remaining: remaining.value,
       question: q && {
@@ -112,8 +126,9 @@ export function createHost() {
             ? game.choiceOrder[game.qIndex].map((i) => ({ id: i, label: q.choices[i] }))
             : null,
       },
-      answer: showAnswer && q ? q.answer : null,
-      correctId: showAnswer && game.mode === 'choice' ? 0 : null,
+      answer: showAnswer && q ? answerText(q) : null,
+      why: showAnswer && q ? (q.why ?? null) : null,
+      correctId: showAnswer && game.mode === 'choice' ? correctIndex(q) : null,
       you: p && {
         name: p.name,
         score: row?.score ?? 0,
@@ -191,7 +206,7 @@ export function createHost() {
       if (game.mode === 'choice') {
         value = Number(msg.value)
         if (!Number.isInteger(value) || value < 0 || value >= q.choices.length) return
-        auto = value === 0
+        auto = value === correctIndex(q)
       } else {
         value = String(msg.value ?? '').trim().slice(0, 40)
         if (!value) return
@@ -302,7 +317,7 @@ export function createHost() {
 
   function start() {
     for (const p of players.value) p.answers = {}
-    game.choiceOrder = QUESTIONS.map((q) => shuffle(q.choices.map((_, i) => i)))
+    game.choiceOrder = makeOrder(quiz.value)
     startQuestion(0)
   }
 
@@ -320,7 +335,7 @@ export function createHost() {
 
   function next() {
     stopSound()
-    if (game.qIndex + 1 < QUESTIONS.length) startQuestion(game.qIndex + 1)
+    if (game.qIndex + 1 < total.value) startQuestion(game.qIndex + 1)
     else end()
   }
 
@@ -343,8 +358,17 @@ export function createHost() {
     for (const conn of conns.values()) conn.close()
     conns.clear()
     peer?.destroy()
-    Object.assign(game, freshGame(randomCode(), { mode: game.mode, duration: game.duration }))
+    Object.assign(game, freshGame(randomCode(), { quizId: game.quizId, mode: game.mode, duration: game.duration }))
     startPeer()
+  }
+
+  function setQuiz(id) {
+    if (game.phase !== 'lobby') return
+    const next = getQuiz(id)
+    game.quizId = next.id
+    game.choiceOrder = makeOrder(next)
+    game.duration = next.defaultDuration ?? game.duration
+    if (!next.modes.includes(game.mode)) game.mode = 'choice'
   }
 
   function removePlayer(pid) {
@@ -370,8 +394,8 @@ export function createHost() {
 
   return {
     game, net, now, soundOn,
-    question, remaining, players, connectedPlayers, leaderboard, currentAnswers,
-    total: QUESTIONS.length,
-    start, closeTimer, reveal, next, end, backToLobby, newGame, removePlayer, setOverride, destroy,
+    quiz, question, remaining, players, connectedPlayers, leaderboard, currentAnswers,
+    total,
+    start, closeTimer, reveal, next, end, backToLobby, newGame, setQuiz, removePlayer, setOverride, destroy,
   }
 }

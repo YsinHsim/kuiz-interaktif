@@ -23,6 +23,7 @@ const tab = ref('host')
           <li>Gunakan <b>laptop</b> yang disambung ke projektor / skrin besar.</li>
           <li>Pastikan laptop ada <b>internet</b> dan <b>bunyi</b> disambung ke speaker (muzik pemasa).</li>
           <li>Matikan mod tidur / skrin padam automatik pada laptop.</li>
+          <li>Tekan <b>⛶ Skrin penuh</b> (atau kekunci <b>F</b>) supaya paparan memenuhi projektor. Tekan <b>Esc</b> untuk keluar.</li>
         </ul>
       </div>
 
@@ -33,8 +34,9 @@ const tab = ref('host')
         </li>
         <li>
           <h3>Pilih tetapan</h3>
-          <p><b>Cara menjawab:</b> <i>Pilihan A–D</i> (disemak automatik, paling pantas) atau <i>Taip jawapan</i> (lebih mencabar).</p>
-          <p><b>Masa setiap soalan:</b> 10s disyorkan untuk ice breaking; 15–20s untuk mod taip.</p>
+          <p><b>Pilih kuiz:</b> cth. <i>Teka Imej Dalam Perkataan</i> (ice breaking) atau <i>Kuiz e-NORES</i>.</p>
+          <p><b>Cara menjawab:</b> <i>Pilihan A–D</i> (disemak automatik, paling pantas) atau <i>Taip jawapan</i> (lebih mencabar — hanya untuk kuiz tertentu).</p>
+          <p><b>Masa setiap soalan:</b> 10s untuk ice breaking; 15–20s untuk mod taip atau soalan panjang (e-NORES).</p>
         </li>
         <li>
           <h3>Jemput peserta masuk</h3>

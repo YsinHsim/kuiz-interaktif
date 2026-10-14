@@ -3,10 +3,13 @@ import { computed, ref, watchEffect, onUnmounted } from 'vue'
 import QRCode from 'qrcode'
 import { createHost } from '../lib/host.js'
 import { joinUrl } from '../lib/net.js'
+import { QUIZZES, correctIndex, answerText } from '../quizzes/index.js'
+import { useFullscreen } from '../lib/fullscreen.js'
 
 const host = createHost()
-const { game, net, soundOn, question, remaining, players, connectedPlayers, leaderboard, currentAnswers, total } = host
+const { game, net, soundOn, quiz, question, remaining, players, connectedPlayers, leaderboard, currentAnswers, total } = host
 onUnmounted(host.destroy)
+const fs = useFullscreen({ hotkey: true })
 
 const LETTERS = ['A', 'B', 'C', 'D']
 const SHAPES = ['▲', '◆', '●', '■']
@@ -22,7 +25,8 @@ const inQuestion = computed(() => ['question', 'closed', 'reveal'].includes(game
 const seconds = computed(() => Math.ceil(remaining.value / 1000))
 const timerPct = computed(() => (remaining.value / (game.duration * 1000)) * 100)
 const answeredCount = computed(() => currentAnswers.value.length)
-const isLast = computed(() => game.qIndex + 1 >= total)
+const isLast = computed(() => game.qIndex + 1 >= total.value)
+const correctId = computed(() => (question.value ? correctIndex(question.value) : 0))
 const showAnswers = computed(() => game.phase === 'closed' || game.phase === 'reveal')
 
 const choiceStats = computed(() => {
@@ -53,7 +57,7 @@ function copyLink() {
 <template>
   <div class="host">
     <header class="bar">
-      <a href="#/" class="brand">Kuiz Ice Breaking</a>
+      <a href="#/" class="brand">{{ quiz.title }}</a>
       <span class="pill">
         <span class="dot" :class="{ wait: net.status === 'connecting', off: net.status === 'error' }" />
         Bilik {{ game.code }}
@@ -61,6 +65,9 @@ function copyLink() {
       <span class="pill">👥 {{ connectedPlayers.length }}<template v-if="players.length !== connectedPlayers.length"> / {{ players.length }}</template></span>
       <span class="spacer" />
       <a v-if="game.phase === 'lobby'" class="btn small ghost" href="#/panduan" target="_blank">📖 Panduan</a>
+      <button v-if="fs.supported" class="btn small ghost" title="Skrin penuh (F)" @click="fs.toggle">
+        {{ fs.isFullscreen.value ? '🗗 Keluar skrin penuh' : '⛶ Skrin penuh' }}
+      </button>
       <button class="btn small ghost" @click="toggleSound">{{ soundOn ? '🔊 Bunyi' : '🔇 Senyap' }}</button>
       <button v-if="game.phase !== 'lobby'" class="btn small ghost" @click="confirmNewGame">Permainan baharu</button>
     </header>
@@ -85,6 +92,21 @@ function copyLink() {
         <div class="card settings">
           <h3>Tetapan</h3>
           <div class="field">
+            <span class="muted">Pilih kuiz</span>
+            <div class="quiz-list">
+              <button
+                v-for="qz in QUIZZES"
+                :key="qz.id"
+                class="quiz-opt"
+                :class="{ on: game.quizId === qz.id }"
+                @click="host.setQuiz(qz.id)"
+              >
+                <b>{{ qz.title }}</b>
+                <small>{{ qz.questions.length }} soalan • {{ qz.subtitle }}</small>
+              </button>
+            </div>
+          </div>
+          <div v-if="quiz.modes.length > 1" class="field">
             <span class="muted">Cara menjawab</span>
             <div class="seg">
               <button :class="{ on: game.mode === 'choice' }" @click="game.mode = 'choice'">Pilihan A–D</button>
@@ -122,14 +144,20 @@ function copyLink() {
     <main v-else-if="inQuestion" class="stage">
       <div class="q-head">
         <span class="pill">Soalan {{ game.qIndex + 1 }} / {{ total }}</span>
-        <h2>{{ question.prompt }}</h2>
+        <h2 v-if="question.image">{{ question.prompt }}</h2>
       </div>
 
       <div class="q-body">
         <div class="q-visual">
-          <img :src="question.image" :alt="question.word" class="qimg" />
+          <img v-if="question.image" :src="question.image" :alt="question.word" class="qimg" />
+          <div v-else class="card q-text">{{ question.prompt }}</div>
           <Transition name="pop">
-            <div v-if="game.phase === 'reveal'" class="answer-banner">JAWAPAN: {{ question.answer }}</div>
+            <div v-if="game.phase === 'reveal'" class="answer-banner" :class="{ inline: !question.image }">
+              JAWAPAN: {{ answerText(question) }}
+            </div>
+          </Transition>
+          <Transition name="pop">
+            <div v-if="game.phase === 'reveal' && question.why" class="card why">💡 {{ question.why }}</div>
           </Transition>
         </div>
 
@@ -151,7 +179,7 @@ function copyLink() {
               v-for="c in choiceStats"
               :key="c.id"
               class="choice"
-              :class="[c.cls, { dim: game.phase === 'reveal' && c.id !== 0, right: game.phase === 'reveal' && c.id === 0 }]"
+              :class="[c.cls, { dim: game.phase === 'reveal' && c.id !== correctId, right: game.phase === 'reveal' && c.id === correctId }]"
             >
               <span class="shape">{{ c.shape }}</span>
               <span class="label">{{ c.label }}</span>
@@ -226,6 +254,10 @@ function copyLink() {
           <span class="rank">{{ r.rank }}</span><span class="name">{{ r.name }}</span><span class="score">{{ r.score }}</span>
         </li>
       </ol>
+      <div v-if="quiz.reflection" class="card reflection">
+        <span class="muted">💭 Refleksi</span>
+        <p>{{ quiz.reflection }}</p>
+      </div>
       <div class="controls center">
         <button class="btn primary big" @click="host.backToLobby">↺ Main semula (peserta sama)</button>
         <button class="btn big" @click="confirmNewGame">Permainan baharu</button>
@@ -277,6 +309,21 @@ h3 { margin: 0 0 12px; font-size: 1rem; }
   padding: 10px 24px; border-radius: 24px; width: max-content; max-width: 92%; text-align: center;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
 }
+.q-text {
+  min-height: 260px; display: flex; align-items: center; justify-content: center; text-align: center;
+  font-size: clamp(1.4rem, 3.2vw, 2.6rem); font-weight: 800; line-height: 1.25; padding: 32px;
+}
+.answer-banner.inline { position: static; transform: none; margin: 14px auto 0; display: block; }
+.why { margin-top: 14px; font-size: clamp(1rem, 1.6vw, 1.25rem); line-height: 1.5; border-color: rgba(246, 196, 69, 0.4); }
+.quiz-list { display: flex; flex-direction: column; gap: 8px; }
+.quiz-opt {
+  font: inherit; text-align: left; color: var(--text); background: var(--bg); border: 2px solid var(--border);
+  border-radius: 12px; padding: 10px 14px; cursor: pointer; display: flex; flex-direction: column; gap: 2px;
+}
+.quiz-opt small { color: var(--muted); }
+.quiz-opt.on { border-color: var(--accent); background: rgba(246, 196, 69, 0.08); }
+.reflection { max-width: 640px; margin: 0 auto 24px; text-align: left; }
+.reflection p { font-size: 1.3rem; font-weight: 600; margin: 6px 0 0; }
 .q-side { display: flex; flex-direction: column; gap: 14px; }
 .timer { text-align: center; }
 .timer p { margin: 10px 0 0; }
