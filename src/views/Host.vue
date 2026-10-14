@@ -60,6 +60,7 @@ function copyLink() {
       </span>
       <span class="pill">👥 {{ connectedPlayers.length }}<template v-if="players.length !== connectedPlayers.length"> / {{ players.length }}</template></span>
       <span class="spacer" />
+      <a v-if="game.phase === 'lobby'" class="btn small ghost" href="#/panduan" target="_blank">📖 Panduan</a>
       <button class="btn small ghost" @click="toggleSound">{{ soundOn ? '🔊 Bunyi' : '🔇 Senyap' }}</button>
       <button v-if="game.phase !== 'lobby'" class="btn small ghost" @click="confirmNewGame">Permainan baharu</button>
     </header>
@@ -69,7 +70,7 @@ function copyLink() {
     <!-- ================= LOBI ================= -->
     <main v-if="game.phase === 'lobby'" class="lobby">
       <section class="card join">
-        <p class="muted">Imbas untuk sertai</p>
+        <p class="scan-hint">📱 Buka kamera telefon &amp; imbas kod QR untuk sertai</p>
         <img v-if="qr" :src="qr" alt="Kod QR untuk sertai" class="qr" />
         <p class="muted small">atau buka laman ini dan masukkan kod</p>
         <div class="code">{{ game.code }}</div>
@@ -246,6 +247,7 @@ h3 { margin: 0 0 12px; font-size: 1rem; }
 .lobby { flex: 1; display: grid; grid-template-columns: minmax(280px, 1fr) minmax(280px, 1fr); gap: 20px; padding: 24px; max-width: 1200px; width: 100%; margin: 0 auto; }
 @media (max-width: 760px) { .lobby { grid-template-columns: 1fr; padding: 16px; } }
 .join { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; }
+.scan-hint { font-weight: 600; font-size: 1.1rem; margin: 0; }
 .qr { width: min(100%, 340px); border-radius: 12px; margin: 8px 0; }
 .code { font-size: clamp(3rem, 8vw, 5.5rem); font-weight: 800; letter-spacing: 0.15em; color: var(--accent); line-height: 1; }
 .url { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-weight: 400; margin-top: 8px; }
