@@ -1,0 +1,88 @@
+// Soalan diambil daripada slaid "Kuiz Ice Breaking 10 Saat".
+// `choices[0]` ialah jawapan betul — susunan dirawakkan semasa permainan.
+// `accept` ialah senarai jawapan yang diterima untuk mod taip (padanan longgar).
+export const QUESTIONS = [
+  {
+    word: 'BUNGA',
+    image: '/images/q1.jpg',
+    prompt: 'Apakah imej utama dalam background perkataan ini?',
+    answer: 'Rumah kampung / rumah tradisional',
+    choices: ['Rumah kampung', 'Masjid', 'Istana', 'Pondok sawah'],
+    accept: ['rumah kampung', 'rumah tradisional', 'rumah', 'rumah melayu', 'rumah kayu', 'rumah lama', 'house'],
+  },
+  {
+    word: 'KOPI',
+    image: '/images/q2.jpg',
+    prompt: 'Haiwan apakah yang tersembunyi dalam perkataan ini?',
+    answer: 'Kucing',
+    choices: ['Kucing', 'Anjing', 'Arnab', 'Harimau'],
+    accept: ['kucing', 'kucing oren', 'cat', 'meow'],
+  },
+  {
+    word: 'PANTAI',
+    image: '/images/q3.jpg',
+    prompt: 'Kenderaan kecil apakah yang kelihatan di dalam huruf?',
+    answer: 'Basikal',
+    choices: ['Basikal', 'Motosikal', 'Skuter', 'Kereta'],
+    accept: ['basikal', 'basikal tua', 'bicycle', 'bike', 'gerek'],
+  },
+  {
+    word: 'BUKU',
+    image: '/images/q4.jpg',
+    prompt: 'Apakah objek besar yang berada di laut dalam perkataan ini?',
+    answer: 'Bot nelayan / kapal kecil',
+    choices: ['Bot nelayan', 'Rumah api', 'Ikan paus', 'Pulau'],
+    accept: ['bot', 'bot nelayan', 'kapal', 'kapal kecil', 'perahu', 'sampan', 'boat', 'ship'],
+  },
+  {
+    word: 'SAYUR',
+    image: '/images/q5.jpg',
+    prompt: 'Objek masa apakah yang terselit di celah sayur?',
+    answer: 'Jam dinding',
+    choices: ['Jam dinding', 'Jam pasir', 'Jam tangan', 'Kalendar'],
+    accept: ['jam', 'jam dinding', 'clock', 'wall clock'],
+  },
+  {
+    word: 'HUJAN',
+    image: '/images/q6.jpg',
+    prompt: 'Buah apakah yang tersembunyi dalam perkataan ini?',
+    answer: 'Durian',
+    choices: ['Durian', 'Rambutan', 'Nangka', 'Manggis'],
+    accept: ['durian', 'buah durian'],
+  },
+  {
+    word: 'KASUT',
+    image: '/images/q7.jpg',
+    prompt: 'Mercu tanda bandar apakah yang paling jelas kelihatan?',
+    answer: 'Menara KL / landskap Kuala Lumpur',
+    choices: ['Menara KL / Kuala Lumpur', 'Menara Berkembar Petronas', 'Jambatan Pulau Pinang', 'A Famosa'],
+    accept: [
+      'menara kl', 'kl tower', 'menara kuala lumpur', 'kuala lumpur', 'kl',
+      'bangunan sultan abdul samad', 'sultan abdul samad', 'dataran merdeka',
+    ],
+  },
+  {
+    word: 'AWAN',
+    image: '/images/q8.jpg',
+    prompt: 'Burung apakah yang sedang terbang dalam perkataan ini?',
+    answer: 'Burung kenyalang / hornbill',
+    choices: ['Burung kenyalang', 'Burung helang', 'Burung merpati', 'Burung bangau'],
+    accept: ['kenyalang', 'burung kenyalang', 'hornbill', 'enggang', 'burung enggang'],
+  },
+  {
+    word: 'PASAR',
+    image: '/images/q9.jpg',
+    prompt: 'Alat muzik apakah yang tersembunyi di dalam huruf?',
+    answer: 'Gitar',
+    choices: ['Gitar', 'Biola', 'Gendang', 'Seruling'],
+    accept: ['gitar', 'guitar', 'gitar akustik'],
+  },
+  {
+    word: 'KUNCI',
+    image: '/images/q10.jpg',
+    prompt: 'Buah apakah yang paling menonjol dalam perkataan ini?',
+    answer: 'Nanas',
+    choices: ['Nanas', 'Betik', 'Mangga', 'Tembikai'],
+    accept: ['nanas', 'nenas', 'buah nanas', 'pineapple'],
+  },
+]
