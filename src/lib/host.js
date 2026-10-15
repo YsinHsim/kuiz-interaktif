@@ -276,23 +276,26 @@ export function createHost() {
   function startPeer() {
     net.status = 'connecting'
     net.error = ''
-    peer = new Peer(hostPeerId(game.code), PEER_OPTIONS)
-    peer.on('open', () => {
+    // Setiap pengendali merujuk peer MILIK sendiri (`p`), bukan `peer` semasa — selepas cubaan semula,
+    // peristiwa daripada peer lama tidak boleh menyentuh peer baharu.
+    const p = new Peer(hostPeerId(game.code), PEER_OPTIONS)
+    peer = p
+    p.on('open', () => {
       idRetries = 0
       net.status = 'ready'
     })
-    peer.on('connection', setupConnection)
-    peer.on('disconnected', () => {
-      if (peer && !peer.destroyed) {
-        net.status = 'connecting'
-        setTimeout(() => peer && !peer.destroyed && peer.reconnect(), 1000)
-      }
+    p.on('connection', setupConnection)
+    p.on('disconnected', () => {
+      if (p.destroyed || p !== peer) return
+      net.status = 'connecting'
+      setTimeout(() => !p.destroyed && p.disconnected && p.reconnect(), 1000)
     })
-    peer.on('error', (err) => {
+    p.on('error', (err) => {
+      if (p !== peer) return
       if (err.type === 'unavailable-id') {
         // ID mungkin masih dipegang oleh tab lama (cth. selepas refresh). Cuba lagi sebentar,
         // atau guna kod baharu jika permainan belum bermula.
-        peer.destroy()
+        p.destroy()
         idRetries++
         if (game.phase === 'lobby' && players.value.length === 0) {
           game.code = randomCode()
@@ -311,7 +314,7 @@ export function createHost() {
         net.status = 'connecting'
         net.error = 'Sambungan ke pelayan terputus. Mencuba semula…'
         // PeerJS memusnahkan peer jika sambungan pertama gagal — cipta semula.
-        if (peer.destroyed) setTimeout(startPeer, 3000)
+        if (p.destroyed) setTimeout(startPeer, 3000)
         return
       }
       console.warn('[host] peer error', err.type, err)

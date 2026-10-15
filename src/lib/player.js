@@ -83,10 +83,12 @@ export function createPlayer() {
   function connect() {
     if (stopped) return
     if (!peer || peer.destroyed) {
-      peer = new Peer(PEER_OPTIONS)
-      peer.on('open', connect)
-      peer.on('disconnected', () => !peer.destroyed && setTimeout(() => peer.reconnect(), 1000))
-      peer.on('error', (err) => {
+      const p = new Peer(PEER_OPTIONS)
+      peer = p
+      p.on('open', connect)
+      p.on('disconnected', () => setTimeout(() => !p.destroyed && p.disconnected && p.reconnect(), 1000))
+      p.on('error', (err) => {
+        if (p !== peer) return
         if (err.type === 'peer-unavailable') {
           if (!everConnected) {
             state.status = 'error'
