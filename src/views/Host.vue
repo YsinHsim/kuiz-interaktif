@@ -46,18 +46,48 @@ const podium = computed(() => leaderboard.value.slice(0, 3))
 
 // Keputusan akhir: gulungan dram semasa podium naik, kemudian fanfara + konfeti apabila tempat pertama muncul.
 let celebrateTimer = null
-const resultsTab = ref('podium') // 'podium' | 'stats'
+const resultsTab = ref('podium') // 'podium' | 'stats' | 'review'
 watch(
   () => game.phase,
   (phase, prev) => {
     clearTimeout(celebrateTimer)
     if (phase !== 'end' || prev === 'end') return
     resultsTab.value = 'podium'
+    reviewIndex.value = 0
     const delay = soundOn.value ? playDrumrollFanfare(1.6) : 2000
     celebrateTimer = setTimeout(() => celebrate(), delay)
   },
 )
 onUnmounted(() => clearTimeout(celebrateTimer))
+
+// Semak semula soalan satu per satu di skrin projektor selepas permainan tamat.
+const reviewIndex = ref(0)
+const reviewQ = computed(() => quiz.value.questions[reviewIndex.value] ?? null)
+const reviewStat = computed(() => questionStats.value[reviewIndex.value] ?? null)
+const reviewCorrectId = computed(() => (reviewQ.value ? correctIndex(reviewQ.value) : 0))
+const reviewChoices = computed(() => {
+  const i = reviewIndex.value
+  const q = reviewQ.value
+  if (!q || game.mode !== 'choice') return []
+  return game.choiceOrder[i].map((id, k) => ({
+    id,
+    label: q.choices[id],
+    shape: SHAPES[k],
+    cls: `choice-${'abcd'[k]}`,
+    count: players.value.filter((p) => p.answers[i]?.value === id).length,
+  }))
+})
+const reviewMax = computed(() => Math.max(1, ...reviewChoices.value.map((c) => c.count)))
+function stepReview(d) {
+  reviewIndex.value = Math.min(Math.max(0, reviewIndex.value + d), questionStats.value.length - 1)
+}
+function onReviewKey(e) {
+  if (game.phase !== 'end' || resultsTab.value !== 'review') return
+  if (e.key === 'ArrowRight') stepReview(1)
+  if (e.key === 'ArrowLeft') stepReview(-1)
+}
+window.addEventListener('keydown', onReviewKey)
+onUnmounted(() => window.removeEventListener('keydown', onReviewKey))
 
 function confirmEnd() {
   if (confirm('Tamatkan permainan sekarang dan paparkan keputusan?')) host.end()
@@ -258,12 +288,53 @@ function copyLink() {
     </main>
 
     <!-- ================= KEPUTUSAN ================= -->
-    <main v-else class="results" :class="{ wide: resultsTab === 'stats' }">
+    <main v-else class="results" :class="{ wide: resultsTab !== 'podium' }">
       <h1>🏆 Keputusan Akhir</h1>
       <div class="tabs">
         <button :class="{ on: resultsTab === 'podium' }" @click="resultsTab = 'podium'">🏆 Podium</button>
         <button :class="{ on: resultsTab === 'stats' }" @click="resultsTab = 'stats'">📊 Analisis Soalan</button>
+        <button :class="{ on: resultsTab === 'review' }" @click="resultsTab = 'review'">📖 Semak Soalan</button>
       </div>
+
+      <section v-if="resultsTab === 'review' && reviewQ" class="review">
+        <div class="rv-nav">
+          <button class="btn" :disabled="reviewIndex === 0" @click="stepReview(-1)">◀ Sebelum</button>
+          <span class="pill">Soalan {{ reviewIndex + 1 }} / {{ questionStats.length }}</span>
+          <button class="btn" :disabled="reviewIndex >= questionStats.length - 1" @click="stepReview(1)">Seterusnya ▶</button>
+        </div>
+        <div class="q-body">
+          <div class="q-visual">
+            <h2 v-if="reviewQ.image" class="rv-prompt">{{ reviewQ.prompt }}</h2>
+            <img v-if="reviewQ.image" :src="reviewQ.image" :alt="reviewQ.word" class="qimg" />
+            <div v-else class="card q-text">{{ reviewQ.prompt }}</div>
+            <div class="answer-banner inline">JAWAPAN: {{ answerText(reviewQ) }}</div>
+            <div v-if="reviewQ.why" class="card why">💡 {{ reviewQ.why }}</div>
+          </div>
+          <aside class="q-side">
+            <div v-if="reviewChoices.length" class="choices">
+              <div
+                v-for="c in reviewChoices"
+                :key="c.id"
+                class="choice"
+                :class="[c.cls, { dim: c.id !== reviewCorrectId, right: c.id === reviewCorrectId }]"
+              >
+                <span class="shape">{{ c.shape }}</span>
+                <span class="label">{{ c.label }}</span>
+                <span class="count">{{ c.count }}</span>
+                <div class="fill" :style="{ width: (c.count / reviewMax) * 100 + '%' }" />
+              </div>
+            </div>
+            <div v-if="reviewStat" class="card rv-stat">
+              <b>{{ reviewStat.correctPct }}% betul</b>
+              <p class="muted">{{ reviewStat.correct }} betul • {{ reviewStat.wrong }} salah • {{ reviewStat.none }} tiada jawapan</p>
+              <p v-if="reviewStat.topWrong" class="muted">
+                Salah paling popular: “{{ reviewStat.topWrong.label }}” ({{ reviewStat.topWrong.count }})
+              </p>
+            </div>
+          </aside>
+        </div>
+        <p class="muted small">Guna kekunci ← → untuk tukar soalan.</p>
+      </section>
 
       <QuestionStats v-if="resultsTab === 'stats'" :stats="questionStats" />
 
@@ -380,6 +451,12 @@ h3 { margin: 0 0 12px; font-size: 1rem; }
 .tabs { display: inline-flex; background: var(--bg-2); border: 1px solid var(--border); border-radius: 14px; padding: 4px; gap: 4px; margin-bottom: 20px; }
 .tabs button { font: inherit; font-weight: 700; border: 0; border-radius: 10px; padding: 10px 20px; background: transparent; color: var(--muted); cursor: pointer; }
 .tabs button.on { background: var(--accent); color: var(--accent-ink); }
+.review { text-align: left; display: flex; flex-direction: column; gap: 16px; }
+.rv-nav { display: flex; align-items: center; justify-content: center; gap: 12px; }
+.rv-prompt { margin: 0 0 12px; font-size: clamp(1.1rem, 2.4vw, 1.7rem); text-align: center; }
+.rv-stat b { font-size: 1.4rem; }
+.rv-stat p { margin: 6px 0 0; }
+.review > .muted { text-align: center; margin: 0; }
 .podium { display: flex; justify-content: center; align-items: flex-end; gap: 12px; margin: 32px 0; }
 .step { display: flex; flex-direction: column; align-items: center; width: min(30%, 200px); animation: rise 0.6s backwards; }
 .step.p1 { order: 2; animation-delay: 1.45s; }
