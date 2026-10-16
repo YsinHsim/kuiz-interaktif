@@ -15,6 +15,7 @@ const saved = loadPlayerSession()
 const codeInput = ref(props.code || saved?.code || '')
 const nameInput = ref(saved?.name || lastUsedName())
 const textAnswer = ref('')
+const showReview = ref(false)
 
 const LETTERS = ['A', 'B', 'C', 'D']
 const SHAPES = ['▲', '◆', '●', '■']
@@ -188,6 +189,22 @@ function leave() {
               <span class="rank">{{ r.rank }}</span><span class="name">{{ r.name }}</span><span class="score">{{ r.score }}</span>
             </li>
           </ol>
+          <button v-if="snap.review?.length" class="btn big review-btn" @click="showReview = !showReview">
+            {{ showReview ? 'Tutup semakan' : '📖 Semak semula soalan' }}
+          </button>
+          <ol v-if="showReview" class="review">
+            <li v-for="(r, i) in snap.review" :key="i" :class="r.correct ? 'ok' : 'no'">
+              <div class="r-head">
+                <span class="pill">S{{ i + 1 }}</span>
+                <span class="r-mark">{{ r.correct ? `✓ +${r.points}` : r.yours ? '✗' : '— tiada jawapan' }}</span>
+              </div>
+              <img v-if="r.image" :src="r.image" alt="" class="r-img" loading="lazy" />
+              <p class="r-prompt">{{ r.prompt }}</p>
+              <p>Jawapan: <b>{{ r.answer }}</b></p>
+              <p v-if="r.yours && !r.correct" class="muted">Anda jawab: “{{ r.yours }}”</p>
+              <p v-if="r.why" class="why">💡 {{ r.why }}</p>
+            </li>
+          </ol>
         </div>
       </main>
     </template>
@@ -247,4 +264,15 @@ function leave() {
 .rank { margin-top: 16px; font-size: 1.1rem; }
 .final .leaderboard { margin-top: 20px; text-align: left; }
 .leaderboard li.me { outline: 2px solid var(--accent); }
+.review-btn { width: 100%; margin-top: 20px; }
+.review { list-style: none; padding: 0; margin: 16px 0 0; display: flex; flex-direction: column; gap: 12px; text-align: left; }
+.review li { background: var(--surface-2); border-radius: 14px; padding: 14px; border-left: 4px solid var(--bad); }
+.review li.ok { border-left-color: var(--good); }
+.review p { margin: 6px 0 0; }
+.r-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.r-mark { font-weight: 800; }
+.review li.ok .r-mark { color: var(--good); }
+.review li.no .r-mark { color: var(--bad); }
+.r-img { width: 100%; border-radius: 10px; margin-top: 10px; }
+.r-prompt { font-weight: 600; }
 </style>

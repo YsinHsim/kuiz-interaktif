@@ -186,7 +186,25 @@ export function createHost() {
       },
       playerCount: players.value.length,
       leaderboard: showAnswer ? leaderboard.value.slice(0, 5).map(({ name, score, rank }) => ({ name, score, rank })) : null,
+      review: game.phase === 'end' ? reviewFor(p) : null,
     }
+  }
+
+  // Semakan semula semua soalan yang dimainkan, dengan jawapan peserta — dihantar selepas permainan tamat.
+  function reviewFor(p) {
+    return quiz.value.questions.slice(0, game.qIndex + 1).map((q, i) => {
+      const a = p?.answers[i]
+      const res = answerResult(a)
+      return {
+        image: q.image ?? null,
+        prompt: q.prompt,
+        answer: answerText(q),
+        why: q.why ?? null,
+        yours: a ? (typeof a.value === 'number' ? q.choices[a.value] : a.value) : null,
+        correct: res.correct,
+        points: res.points,
+      }
+    })
   }
 
   function send(pid, msg) {

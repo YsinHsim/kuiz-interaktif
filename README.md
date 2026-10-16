@@ -21,6 +21,14 @@ npm run dev        # buka http://<IP-rangkaian>:5173/#/host supaya telefon boleh
 Import folder ini sebagai projek Vercel (Framework: **Vite**). Tiada env var diperlukan.
 Hos buka `https://<projek>.vercel.app/#/host`.
 
+## Analitik (Cloudflare Web Analytics)
+1. Cloudflare dashboard → **Analytics & Logs → Web Analytics → Add a site** → masukkan domain Vercel.
+2. Salin token dari snippet yang diberi.
+3. Vercel → Settings → Environment Variables: `VITE_CF_BEACON_TOKEN=<token>` → redeploy.
+
+Hanya aktif dalam build produksi. Nota: penghala guna hash (`#/host`, `#/join`), jadi semua lawatan
+dikira sebagai `/` — tidak dapat bezakan hos dan peserta.
+
 ## Pilihan: pelayan PeerJS sendiri
 Jika pelayan awam tidak stabil, jalankan `npx peer --port 9000` di mana-mana pelayan dan tetapkan:
 ```
