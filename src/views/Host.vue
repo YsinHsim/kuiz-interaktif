@@ -324,7 +324,7 @@ h3 { margin: 0 0 12px; font-size: 1rem; }
 .stage { flex: 1; display: flex; flex-direction: column; gap: 16px; padding: 20px 24px; max-width: 1400px; width: 100%; margin: 0 auto; }
 .q-head { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; text-align: center; }
 .q-head h2 { margin: 0; font-size: clamp(1.1rem, 2.4vw, 1.7rem); }
-.q-body { flex: 1; display: grid; grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr); gap: 20px; align-items: start; align-content: center; }
+.q-body { flex: 1; display: grid; grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr); gap: 20px; align-items: center; align-content: center; }
 @media (max-width: 900px) { .q-body { grid-template-columns: 1fr; } }
 .q-visual { position: relative; }
 .answer-banner {
