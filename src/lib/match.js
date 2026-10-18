@@ -7,40 +7,36 @@ export function normalize(s) {
     .trim()
 }
 
+// Jarak edit (Damerau–Levenshtein ringkas): huruf bertukar tempat ("durain") dikira satu kesilapan.
 function levenshtein(a, b) {
   if (a === b) return 0
-  const prev = Array.from({ length: b.length + 1 }, (_, i) => i)
+  let prev2 = null
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j)
   for (let i = 1; i <= a.length; i++) {
-    let diag = prev[0]
-    prev[0] = i
+    const cur = [i]
     for (let j = 1; j <= b.length; j++) {
-      const tmp = prev[j]
-      prev[j] = Math.min(prev[j] + 1, prev[j - 1] + 1, diag + (a[i - 1] === b[j - 1] ? 0 : 1))
-      diag = tmp
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost)
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+        cur[j] = Math.min(cur[j], prev2[j - 2] + 1)
+      }
     }
+    prev2 = prev
+    prev = cur
   }
   return prev[b.length]
 }
 
 const tolerance = (len) => (len >= 7 ? 2 : len >= 4 ? 1 : 0)
 
-// Padanan longgar: sama tepat, mengandungi frasa yang diterima,
-// atau salah ejaan kecil (cth. "kucng", "durain").
+// Padanan longgar: keseluruhan jawapan mesti sama dengan salah satu jawapan diterima,
+// dengan toleransi salah ejaan kecil (cth. "kucng", "durain"). Tidak terima jawapan yang
+// sekadar mengandungi perkataan betul — supaya peserta tidak boleh taip beberapa tekaan sekali gus.
 export function isMatch(input, accepted) {
   const n = normalize(input)
   if (!n) return false
-  const words = n.split(' ')
   return accepted.some((raw) => {
     const a = normalize(raw)
-    if (!a) return false
-    if (n === a || ` ${n} `.includes(` ${a} `)) return true
-    const tol = tolerance(a.length)
-    if (levenshtein(n, a) <= tol) return true
-    // Bandingkan setiap kumpulan perkataan yang sama panjang dengan frasa diterima.
-    const size = a.split(' ').length
-    for (let i = 0; i + size <= words.length; i++) {
-      if (levenshtein(words.slice(i, i + size).join(' '), a) <= tol) return true
-    }
-    return false
+    return !!a && levenshtein(n, a) <= tolerance(a.length)
   })
 }
